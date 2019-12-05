@@ -13,12 +13,8 @@ impl Alloc {
         Alloc { ptr, layout }
     }
 
-    pub fn ptr_f32(&self) -> *mut f32 {
-        self.ptr as *mut f32
-    }
-
-    pub fn ptr(&self) -> *mut u8 {
-        self.ptr
+    pub fn ptr<F>(&self) -> *mut F {
+        self.ptr as *mut F
     }
 }
 

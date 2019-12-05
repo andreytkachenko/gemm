@@ -246,7 +246,6 @@ pub unsafe fn sdot(
         let mut acc1 = _mm256_setzero_ps();
         let mut acc2 = _mm256_setzero_ps();
         let mut acc3 = _mm256_setzero_ps();
-        
         for _ in 0..n / 32 {
             let x0 = _mm256_loadu_ps(x);
             let y0 = _mm256_loadu_ps(y);

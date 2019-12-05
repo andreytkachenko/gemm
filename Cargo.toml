@@ -9,6 +9,11 @@ build = "build.rs"
 
 [dependencies]
 rand = "0.7.2"
-matrixmultiply = "0.2.3"
 blas = "0.20.0"
 openblas = "0.0.1"
+crunchy = "0.2.2"
+rayon = "1.2.1"
+threadpool = "1.7.1"
+
+[profile.release]
+debug = true

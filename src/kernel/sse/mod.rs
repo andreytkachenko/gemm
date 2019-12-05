@@ -1,9 +1,9 @@
 mod fma;
-mod hsum;
+// mod hsum;
 mod intrinsics;
-pub mod l1d;
-pub mod l1s;
-pub mod l3d;
+// pub mod l1d;
+// pub mod l1s;
+// pub mod l3d;
 pub mod l3s;
 
 use core::marker::PhantomData;
@@ -11,9 +11,10 @@ use crate::matrix::{Number, MutMatrix, Matrix, MatrixMut};
 use crate::kernel::{GemmKernel, GemmKernelSupNr, GemmKernelSupMr, GemmKernelSup};
 use crate::dim::*;
 
-pub struct AvxKernel<F: Number, I>(PhantomData<fn(F, I)>);
 
-impl<I> GemmKernelSupNr<f32, A5> for AvxKernel<f32, I> 
+pub struct SseKernel<F: Number, I>(PhantomData<fn(F, I)>);
+
+impl<I> GemmKernelSupNr<f32, A5> for SseKernel<f32, I> 
     where I: GemmKernelSupNr<f32, A5>
 {
     #[inline]
@@ -28,7 +29,7 @@ impl<I> GemmKernelSupNr<f32, A5> for AvxKernel<f32, I>
     }
 } 
 
-impl<I> GemmKernelSupMr<f32, A16> for AvxKernel<f32, I> 
+impl<I> GemmKernelSupMr<f32, A16> for SseKernel<f32, I> 
     where I: GemmKernelSupMr<f32, A16>
 {
     #[inline]
@@ -39,11 +40,11 @@ impl<I> GemmKernelSupMr<f32, A16> for AvxKernel<f32, I>
         beta: f32,
         c: C,
     ) {
-        self::l3s::sgemm_sup_16x1(pa.stride, alpha, pa, b, beta, c);
+        I::sup_bl(alpha, pa, b, beta, c);
     }
 }
 
-impl<I> GemmKernelSup<f32> for AvxKernel<f32, I> 
+impl<I> GemmKernelSup<f32> for SseKernel<f32, I> 
     where I: GemmKernelSup<f32>
 {
     #[inline]
@@ -59,16 +60,12 @@ impl<I> GemmKernelSup<f32> for AvxKernel<f32, I>
     }
 }
 
-impl<I> GemmKernel<f32, A16, A5> for AvxKernel<f32, I> 
+impl<I> GemmKernel<f32, A16, A5> for SseKernel<f32, I> 
     where I: GemmKernel<f32, A16, A5>
 {
     #[inline]
     unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>, i: usize) {
-        if  a.is_transposed() {
-            I::pack_row_a(a, pa, i);
-        } else {
-            self::l3s::sgemm_pa_16x(pa.stride, a.col(i), a.stride(), pa.row_mut(i));
-        }
+        I::pack_row_a(a, pa, i);
     }
 
     #[inline]
@@ -84,6 +81,6 @@ impl<I> GemmKernel<f32, A16, A5> for AvxKernel<f32, I>
         beta: f32,
         c: C,
     ) {
-        self::l3s::sgemm_ukr_16x8(pa.stride, alpha, pa, pb, beta, c);
+        I::main_tl(alpha, pa, pb, beta, c);
     }
 }
