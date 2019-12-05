@@ -1,16 +1,5 @@
-mod matrix;
-mod gemm;
-mod sgemm;
-mod aligned_alloc;
-mod kernel;
-mod dim;
-mod executor;
-
-
-extern crate blas;
 extern crate openblas;
-
-use crate::sgemm::sgemm;
+extern crate blas;
 
 fn main() {
     use rand::Rng;
@@ -97,11 +86,12 @@ fn main() {
 
     let time = std::time::Instant::now();
     unsafe {
-        sgemm(
-            &executor::RayonExecutor,
+        gemm::sgemm(
+            &gemm::executor::DefaultExecutor,
             false,
             false,
             false,
+
             m,
             n,
             k,

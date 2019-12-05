@@ -64,13 +64,13 @@ impl<I> GemmKernel<f32, A16, A5> for SseKernel<f32, I>
     where I: GemmKernel<f32, A16, A5>
 {
     #[inline]
-    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>, i: usize) {
-        I::pack_row_a(a, pa, i);
+    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>) {
+        I::pack_row_a(a, pa);
     }
 
     #[inline]
-    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>, j: usize) {
-        I::pack_row_b(b, pb, j);
+    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>) {
+        I::pack_row_b(b, pb);
     }
 
     #[inline]

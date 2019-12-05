@@ -1,8 +1,8 @@
 use rand::Rng;
 
-const M_LEN: usize = 8192;
-const N_LEN: usize = 8192;
-const K_LEN: usize = 8192;
+const M_LEN: usize = 17;
+const N_LEN: usize = 6;
+const K_LEN: usize = 4;
 
 fn make_matrices() -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
     let mut rng = rand::thread_rng();
@@ -15,19 +15,23 @@ fn make_matrices() -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
     let mut b = vec![0.0; n * k];
     let mut b_t = vec![0.0; n * k];
 
+    let mut counter = 0;
     for row in 0..k {
         for col in 0..m {
-            let v = rng.gen();
+            let v = counter as f32;
             a[row * m + col] = v;
             a_t[col * k + row] = v;
+            counter += 1;
         }
     }
 
+    let mut counter = 0;
     for row in 0..n {
         for col in 0..k {
-            let v = rng.gen();
+            let v = counter as f32;
             b[row * k + col] = v;
             b_t[col * n + row] = v;
+            counter += 1;
         }
     }
 
@@ -80,6 +84,17 @@ fn test_sgemm_nn() {
     let mut c = vec![0.0; m * n];
     let mut cref = vec![0.0; m * n];
 
+    for row in 0..N_LEN {
+        for col in 0..K_LEN {
+            let index = row * K_LEN + col;
+
+            print!("{:>5} ", b[index]);
+        }
+        println!();
+    }
+
+    println!();
+
     unsafe {
         blas::sgemm(
             b'N',
@@ -118,6 +133,27 @@ fn test_sgemm_nn() {
         );
     }
 
+
+    for row in 0..N_LEN {
+        for col in 0..M_LEN {
+            let index = row * M_LEN + col;
+
+            print!("{:>5} ", c[index]);
+        }
+        println!();
+    }
+
+    println!();
+
+    for row in 0..N_LEN {
+        for col in 0..M_LEN {
+            let index = row * M_LEN + col;
+
+            print!("{:>5} ", cref[index]);
+        }
+        println!();
+    }
+
     for row in 0..N_LEN {
         for col in 0..M_LEN {
             let index = row * M_LEN + col;
@@ -127,8 +163,8 @@ fn test_sgemm_nn() {
             assert!(feq(a, b), "a != b, a[{}, {}]={}, b[{}, {}]={}", row, col, a, row, col, b);
         }
     }
+    
 }
-
 
 #[test]
 fn test_sgemm_nt() {

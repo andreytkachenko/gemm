@@ -136,7 +136,19 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     // let ccol5 = c.row_mut(5);
     // let ccol6 = c.row_mut(6);
     // let ccol7 = c.add(ldc * 7);
-    
+
+    mt00 = _mm256_add_ps(_mm256_loadu_ps(ccol0), mt00);
+    mt01 = _mm256_add_ps(_mm256_loadu_ps(ccol1), mt01);
+    mt02 = _mm256_add_ps(_mm256_loadu_ps(ccol2), mt02);
+    mt03 = _mm256_add_ps(_mm256_loadu_ps(ccol3), mt03);
+    mt04 = _mm256_add_ps(_mm256_loadu_ps(ccol4), mt04);
+
+    mt10 = _mm256_add_ps(_mm256_loadu_ps(ccol0.add(8)), mt10);
+    mt11 = _mm256_add_ps(_mm256_loadu_ps(ccol1.add(8)), mt11);
+    mt12 = _mm256_add_ps(_mm256_loadu_ps(ccol2.add(8)), mt12);
+    mt13 = _mm256_add_ps(_mm256_loadu_ps(ccol3.add(8)), mt13);
+    mt14 = _mm256_add_ps(_mm256_loadu_ps(ccol4.add(8)), mt14);
+
     // if beta != 0.0 {
     //     let beta = _mm256_broadcast_ss(&beta);
 
@@ -210,6 +222,9 @@ pub(crate) unsafe fn sgemm_sup_16x1<B: Matrix<f32>, C: MatrixMut<f32>>(
     // mt0 = _mm256_mul_ps(alpha, mt0);
     // mt1 = _mm256_mul_ps(alpha, mt1);
 
+    let ccol0 = c.ptr_mut();
+    let ccol1 = c.ptr_mut().add(8);
+
     // if beta != 0.0 {
     //     let beta = _mm256_broadcast_ss(&beta);
 
@@ -217,8 +232,11 @@ pub(crate) unsafe fn sgemm_sup_16x1<B: Matrix<f32>, C: MatrixMut<f32>>(
     //     mt1 = fmadd_ps(beta, _mm256_loadu_ps(c.add(8)), mt1);
     // }
 
-    _mm256_storeu_ps(c.ptr_mut(), mt0);
-    _mm256_storeu_ps(c.col_mut(8), mt1);
+    mt0 = _mm256_add_ps(_mm256_loadu_ps(ccol0), mt0);
+    mt1 = _mm256_add_ps(_mm256_loadu_ps(ccol1), mt1);
+
+    _mm256_storeu_ps(ccol0, mt0);
+    _mm256_storeu_ps(ccol1, mt1);
 }
 
 pub(crate) unsafe fn sgemm_pa_16x(k: usize, a: *const f32, lda: usize, pa: *mut f32) {

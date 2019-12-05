@@ -1,5 +1,5 @@
 
-pub trait Number: Copy + Send + Sync + 'static  {}
+pub trait Number: core::fmt::Display + Copy + Send + Sync + 'static  {}
 
 impl Number for f32 {}
 impl Number for f64 {}

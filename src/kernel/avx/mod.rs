@@ -63,17 +63,17 @@ impl<I> GemmKernel<f32, A16, A5> for AvxKernel<f32, I>
     where I: GemmKernel<f32, A16, A5>
 {
     #[inline]
-    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>, i: usize) {
+    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>) {
         if  a.is_transposed() {
-            I::pack_row_a(a, pa, i);
+            I::pack_row_a(a, pa);
         } else {
-            self::l3s::sgemm_pa_16x(pa.stride, a.col(i), a.stride(), pa.row_mut(i));
+            self::l3s::sgemm_pa_16x(pa.stride, a.ptr(), a.stride(), pa.ptr_mut());
         }
     }
 
     #[inline]
-    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>, j: usize) {
-        I::pack_row_b(b, pb, j);
+    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>) {
+        I::pack_row_b(b, pb);
     }
 
     #[inline]

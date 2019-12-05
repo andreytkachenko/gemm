@@ -1,6 +1,6 @@
 use crate::aligned_alloc;
 use crate::matrix::{Number, Matrix, MatrixMut, MutMatrix, ConstMatrix, ConstTransposedMatrix, MutTransposedMatrix};
-use crate::kernel::params::single::*;
+use crate::kernel::params::single::{NC, MC, KC};
 use crate::kernel;
 use crate::kernel::GemmKernel;
 use crate::dim::Dim;
@@ -140,19 +140,25 @@ where E: Executor,
     }
 }
 
-//      | MR |   
-// +----------------------+
-// |TL  :    :    :    |TR|
-// |    :    :    :    |  |
-// + - - - - - - - - - ---+----
-// |    :    :    :    |  |  NR
-// |    :    :    :    |  |
-// + - - - - - - - - - ---+----
-// |    :    :    :    |  |
-// |    :    :    :    |  |
-// +----------------------+
-// |BL  |    |    |    |BR|
-// +----------------------+
+//
+//                |       MR     |   
+// +-----------------------------+----+
+// |              :              |    |
+// |  TL          :              | TR |
+// |              :              |    |
+// + - - - - - - -:- - - - - - - - - -+ ----
+// |              :              |    |
+// |              :              |    |  NR
+// |              :              |    |
+// + - - - - - - -:- - - - - - - - - -+ ----
+// |              :              |    |
+// |              :              |    |
+// |              :              |    |
+// +-----------------------------+----+
+// |  BL          |              | BR |
+// +-----------------------------+----+
+//
+
 unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
     e: &E,
     m: usize,
@@ -177,25 +183,25 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
           C: MatrixMut<F>,
 
 {
-    let n_left = n % NR;
+    let n_left = n % NR::DIM;
     let n_main = n - n_left;
 
-    let m_left = m % MR;
+    let m_left = m % MR::DIM;
     let m_main = m - m_left;
 
     if first_time {
-        e.execute(0, n_main, NR, move |j| 
-            K::pack_row_b(b, pb, j));
+        e.execute(0, n_main, NR::DIM, move |j| 
+            K::pack_row_b(b, pb));
     }
 
-    e.execute(0, m_main, MR, move |i| 
-        K::pack_row_a(a, pa, i));
+    e.execute(0, m_main, MR::DIM, move |i| 
+        K::pack_row_a(a.sub_col(i), pa.sub_row(i)));
 
     e.synchronize();
     
-    e.execute(0, n_main, NR, move |j| {
+    e.execute(0, n_main, NR::DIM, move |j| {
         // Section TL
-        for i in (0..m_main).step_by(MR) {
+        for i in (0..m_main).step_by(MR::DIM) {
             K::main_tl(alpha,
                 pa.sub_row(i),
                 pb.sub_row(j),
@@ -214,19 +220,22 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
         }
     });
 
-    e.execute(n_main, n, 1, move |j| {
-        // Section BL
-        for i in (0..m_main).step_by(MR) {
-            K::sup_bl(
-                alpha,
-                pa.sub_row(i),
-                b.sub_row(j),
-                beta,
-                c.sub(j, i)
-            );
-        }
+    e.execute(0, n_left * m_main, MR::DIM, move |ji| {
+        let j = n_main + ji / m_main;
+        let i = ji % m_main;
 
-        // Section BR
+        // Section BL
+        K::sup_bl(
+            alpha,
+            pa.sub_row(i),
+            b.sub_row(j),
+            beta,
+            c.sub(j, i)
+        );
+    });
+
+    // Section BR
+    for j in n_main..n {
         for i in m_main..m {
             K::sup_br(
                 k,
@@ -236,7 +245,7 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
                 beta,
                 c.sub(j, i))
         }
-    });
+    };
 
     e.synchronize();
 }

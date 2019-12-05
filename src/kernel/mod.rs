@@ -71,8 +71,8 @@ pub trait GemmKernelSupNr<F: Number, NR: Dim> {
 }
 
 pub trait GemmKernel<F: Number, MR: Dim, NR: Dim>: GemmKernelSupMr<F, MR> + GemmKernelSupNr<F, NR> + GemmKernelSup<F> {
-    unsafe fn pack_row_a<A: Matrix<F>>(a: A, pa: MutMatrix<F>, i: usize);
-    unsafe fn pack_row_b<B: Matrix<F>>(b: B, pb: MutMatrix<F>, j: usize);
+    unsafe fn pack_row_a<A: Matrix<F>>(a: A, pa: MutMatrix<F>);
+    unsafe fn pack_row_b<B: Matrix<F>>(b: B, pb: MutMatrix<F>);
 
     unsafe fn main_tl<C: MatrixMut<F>>(
         alpha: F,

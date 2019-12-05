@@ -7,7 +7,7 @@ pub trait Executor {
         f: F,
     );
 
-    fn synchronize(&self);
+    fn synchronize(&self) {}
 }
 
 pub struct DefaultExecutor;
@@ -23,10 +23,6 @@ impl Executor for DefaultExecutor {
         for i in (start..end).step_by(step) {
             f(i);
         }
-    }
-
-    fn synchronize(&self) {
-
     }
 }
 
@@ -47,10 +43,6 @@ impl Executor for RayonExecutor {
             .into_par_iter()
             .map(|x| x * step)
             .for_each(|x|f(x));
-    }
-
-    fn synchronize(&self) {
-        
     }
 }
 

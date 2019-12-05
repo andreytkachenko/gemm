@@ -61,27 +61,27 @@ impl GemmKernelSup<f32> for GenericKernel {
             elem += beta * *c.ptr();
         }
 
-        *c.ptr_mut() = elem;
+        *c.ptr_mut() += elem;
     }
 }
 
 impl GemmKernel<f32, A16, A5> for GenericKernel {
 
     #[inline]
-    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>, i: usize) {
+    unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>) {
         if  a.is_transposed() {
-            self::l3s::sgemm_pa_t(pa.stride, a.col(i), a.stride(), pa.row_mut(i));
+            self::l3s::sgemm_pa_t(pa.stride, a.ptr(), a.stride(), pa.ptr_mut());
         } else {
             unimplemented!()
         }
     }
 
     #[inline]
-    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>, j: usize) {
+    unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>) {
         if  b.is_transposed() {
-            self::l3s::sgemm_pb_t(pb.stride, b.row(j), b.stride(), pb.row_mut(j));
+            self::l3s::sgemm_pb_t(pb.stride, b.ptr(), b.stride(), pb.ptr_mut());
         } else {
-            self::l3s::sgemm_pb_x8(pb.stride, b.row(j), b.stride(), pb.row_mut(j));
+            self::l3s::sgemm_pb_x8(pb.stride, b.ptr(), b.stride(), pb.ptr_mut());
         }
     }
 

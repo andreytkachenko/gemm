@@ -67,11 +67,11 @@ pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     //     // c7 += beta * *ccol7;
     // }
 
-    *ccol0 = c0;
-    *ccol1 = c1;
-    *ccol2 = c2;
-    *ccol3 = c3;
-    *ccol4 = c4;
+    *ccol0 += c0;
+    *ccol1 += c1;
+    *ccol2 += c2;
+    *ccol3 += c3;
+    *ccol4 += c4;
     // *ccol5 = c5;
     // *ccol6 = c6;
     // *ccol7 = c7;
@@ -113,7 +113,6 @@ pub(crate) unsafe fn sgemm_pb_x8(k: usize, b: *const f32, ldb: usize, pb: *mut f
 }
 
 pub(crate) unsafe fn sgemm_pb_t(k: usize, b: *const f32, ldb: usize, pb: *mut f32) {
-    use crate::kernel::params::single::NR;
     let mut b = b;
     let mut pb = pb;
 
