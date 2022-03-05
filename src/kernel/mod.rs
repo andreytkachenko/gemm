@@ -6,14 +6,14 @@ pub mod avx;
 pub mod generic;
 pub mod sse;
 
-use crate::matrix::{Number, Matrix, MatrixMut, MutMatrix};
 use crate::dim::Dim;
+use crate::matrix::{Matrix, MatrixMut, MutMatrix, Number};
 
 pub mod params {
     pub mod single {
         pub const MC: usize = 128;
         pub const KC: usize = 256;
-        pub const NC: usize = 8*1024;
+        pub const NC: usize = 8 * 1024;
         pub const MR: usize = 16;
         pub const NR: usize = 5;
     }
@@ -70,15 +70,11 @@ pub trait GemmKernelSupNr<F: Number, NR: Dim> {
     );
 }
 
-pub trait GemmKernel<F: Number, MR: Dim, NR: Dim>: GemmKernelSupMr<F, MR> + GemmKernelSupNr<F, NR> + GemmKernelSup<F> {
+pub trait GemmKernel<F: Number, MR: Dim, NR: Dim>:
+    GemmKernelSupMr<F, MR> + GemmKernelSupNr<F, NR> + GemmKernelSup<F>
+{
     unsafe fn pack_row_a<A: Matrix<F>>(a: A, pa: MutMatrix<F>);
     unsafe fn pack_row_b<B: Matrix<F>>(b: B, pb: MutMatrix<F>);
 
-    unsafe fn main_tl<C: MatrixMut<F>>(
-        alpha: F,
-        pa: MutMatrix<F>,
-        pb: MutMatrix<F>,
-        beta: F,
-        c: C,
-    );
+    unsafe fn main_tl<C: MatrixMut<F>>(alpha: F, pa: MutMatrix<F>, pb: MutMatrix<F>, beta: F, c: C);
 }

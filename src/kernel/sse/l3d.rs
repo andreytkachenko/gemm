@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::fma::fmadd_pd;
 use super::intrinsics::*;
 

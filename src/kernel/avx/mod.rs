@@ -6,15 +6,16 @@ pub mod l1s;
 pub mod l3d;
 pub mod l3s;
 
-use core::marker::PhantomData;
-use crate::matrix::{Number, MutMatrix, Matrix, MatrixMut};
-use crate::kernel::{GemmKernel, GemmKernelSupNr, GemmKernelSupMr, GemmKernelSup};
 use crate::dim::*;
+use crate::kernel::{GemmKernel, GemmKernelSup, GemmKernelSupMr, GemmKernelSupNr};
+use crate::matrix::{Matrix, MatrixMut, MutMatrix, Number};
+use core::marker::PhantomData;
 
 pub struct AvxKernel<F: Number, I>(PhantomData<fn(F, I)>);
 
-impl<I> GemmKernelSupNr<f32, A5> for AvxKernel<f32, I> 
-    where I: GemmKernelSupNr<f32, A5>
+impl<I> GemmKernelSupNr<f32, A5> for AvxKernel<f32, I>
+where
+    I: GemmKernelSupNr<f32, A5>,
 {
     #[inline]
     unsafe fn sup_tr<A: Matrix<f32>, C: MatrixMut<f32>>(
@@ -26,10 +27,11 @@ impl<I> GemmKernelSupNr<f32, A5> for AvxKernel<f32, I>
     ) {
         I::sup_tr(alpha, a, pb, beta, c);
     }
-} 
+}
 
-impl<I> GemmKernelSupMr<f32, A16> for AvxKernel<f32, I> 
-    where I: GemmKernelSupMr<f32, A16>
+impl<I> GemmKernelSupMr<f32, A16> for AvxKernel<f32, I>
+where
+    I: GemmKernelSupMr<f32, A16>,
 {
     #[inline]
     unsafe fn sup_bl<B: Matrix<f32>, C: MatrixMut<f32>>(
@@ -43,8 +45,9 @@ impl<I> GemmKernelSupMr<f32, A16> for AvxKernel<f32, I>
     }
 }
 
-impl<I> GemmKernelSup<f32> for AvxKernel<f32, I> 
-    where I: GemmKernelSup<f32>
+impl<I> GemmKernelSup<f32> for AvxKernel<f32, I>
+where
+    I: GemmKernelSup<f32>,
 {
     #[inline]
     unsafe fn sup_br<A: Matrix<f32>, B: Matrix<f32>, C: MatrixMut<f32>>(
@@ -59,12 +62,13 @@ impl<I> GemmKernelSup<f32> for AvxKernel<f32, I>
     }
 }
 
-impl<I> GemmKernel<f32, A16, A5> for AvxKernel<f32, I> 
-    where I: GemmKernel<f32, A16, A5>
+impl<I> GemmKernel<f32, A16, A5> for AvxKernel<f32, I>
+where
+    I: GemmKernel<f32, A16, A5>,
 {
     #[inline]
     unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>) {
-        if  a.is_transposed() {
+        if a.is_transposed() {
             I::pack_row_a(a, pa);
         } else {
             self::l3s::sgemm_pa_16x(pa.stride, a.ptr(), a.stride(), pa.ptr_mut());

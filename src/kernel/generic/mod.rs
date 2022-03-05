@@ -1,9 +1,9 @@
 pub mod l3d;
 pub mod l3s;
 
-use crate::matrix::{Matrix, MatrixMut, MutMatrix};
-use crate::kernel::{GemmKernel, GemmKernelSupNr, GemmKernelSupMr, GemmKernelSup};
 use crate::dim::*;
+use crate::kernel::{GemmKernel, GemmKernelSup, GemmKernelSupMr, GemmKernelSupNr};
+use crate::matrix::{Matrix, MatrixMut, MutMatrix};
 
 pub struct GenericKernel;
 
@@ -16,24 +16,18 @@ impl GemmKernelSupNr<f32, A5> for GenericKernel {
         beta: f32,
         c: C,
     ) {
-        self::l3s::sgemm_sup_1x8(
-            pb.stride,
-            alpha,
-            a,
-            pb,
-            beta,
-            c)
+        self::l3s::sgemm_sup_1x8(pb.stride, alpha, a, pb, beta, c)
     }
-} 
+}
 
 impl GemmKernelSupMr<f32, A16> for GenericKernel {
     #[inline]
     unsafe fn sup_bl<B: Matrix<f32>, C: MatrixMut<f32>>(
-        alpha: f32,
-        pa: MutMatrix<f32>,
-        b: B,
-        beta: f32,
-        c: C,
+        _alpha: f32,
+        _pa: MutMatrix<f32>,
+        _b: B,
+        _beta: f32,
+        _c: C,
     ) {
         unimplemented!()
     }
@@ -66,10 +60,9 @@ impl GemmKernelSup<f32> for GenericKernel {
 }
 
 impl GemmKernel<f32, A16, A5> for GenericKernel {
-
     #[inline]
     unsafe fn pack_row_a<A: Matrix<f32>>(a: A, pa: MutMatrix<f32>) {
-        if  a.is_transposed() {
+        if a.is_transposed() {
             self::l3s::sgemm_pa_t(pa.stride, a.ptr(), a.stride(), pa.ptr_mut());
         } else {
             unimplemented!()
@@ -78,7 +71,7 @@ impl GemmKernel<f32, A16, A5> for GenericKernel {
 
     #[inline]
     unsafe fn pack_row_b<B: Matrix<f32>>(b: B, pb: MutMatrix<f32>) {
-        if  b.is_transposed() {
+        if b.is_transposed() {
             self::l3s::sgemm_pb_t(pb.stride, b.ptr(), b.stride(), pb.ptr_mut());
         } else {
             self::l3s::sgemm_pb_x8(pb.stride, b.ptr(), b.stride(), pb.ptr_mut());
@@ -87,11 +80,11 @@ impl GemmKernel<f32, A16, A5> for GenericKernel {
 
     #[inline]
     unsafe fn main_tl<C: MatrixMut<f32>>(
-        alpha: f32,
-        pa: MutMatrix<f32>,
-        pb: MutMatrix<f32>,
-        beta: f32,
-        c: C,
+        _alpha: f32,
+        _pa: MutMatrix<f32>,
+        _pb: MutMatrix<f32>,
+        _beta: f32,
+        _c: C,
     ) {
         unimplemented!()
     }

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::intrinsics::*;
 
 #[cfg(target_feature = "fma")]

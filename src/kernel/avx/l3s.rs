@@ -1,16 +1,16 @@
 use super::fma::fmadd_ps;
 use super::intrinsics::*;
 use crate::kernel::params::single::{MR, NR};
-use crate::matrix::{Matrix, MutMatrix, MatrixMut};
+use crate::matrix::{Matrix, MatrixMut, MutMatrix};
 use crunchy::unroll;
 
 #[inline]
 pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     k: usize,
-    alpha: f32,
+    _alpha: f32,
     pa: MutMatrix<f32>,
     pb: MutMatrix<f32>,
-    beta: f32,
+    _beta: f32,
     c: C,
 ) {
     let mut mt00 = _mm256_setzero_ps();
@@ -21,7 +21,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     // let mut mt05 = _mm256_setzero_ps();
     // let mut mt06 = _mm256_setzero_ps();
     // let mut mt07 = _mm256_setzero_ps();
-    
+
     let mut mt10 = _mm256_setzero_ps();
     let mut mt11 = _mm256_setzero_ps();
     let mut mt12 = _mm256_setzero_ps();
@@ -30,7 +30,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     // let mut mt15 = _mm256_setzero_ps();
     // let mut mt16 = _mm256_setzero_ps();
     // let mut mt17 = _mm256_setzero_ps();
-    
+
     let mut pa = pa.ptr();
     let mut pb = pb.ptr();
 
@@ -53,7 +53,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
                 // let b5 = _mm256_broadcast_ss(&*pb.add(5));
                 // let b6 = _mm256_broadcast_ss(&*pb.add(6));
                 // let b7 = _mm256_broadcast_ss(&*pb.add(7));
-                
+
                 mt00 = fmadd_ps(a0, b0, mt00);
                 mt01 = fmadd_ps(a0, b1, mt01);
                 mt02 = fmadd_ps(a0, b2, mt02);
@@ -75,7 +75,6 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
         pb = pb.add(BATCH * NR);
     }
 
-
     for _ in k_main..k {
         let a0 = _mm256_load_ps(pa);
         let a1 = _mm256_load_ps(pa.add(8));
@@ -88,7 +87,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
         // let b5 = _mm256_broadcast_ss(&*pb.add(5));
         // let b6 = _mm256_broadcast_ss(&*pb.add(6));
         // let b7 = _mm256_broadcast_ss(&*pb.add(7));
-        
+
         mt00 = fmadd_ps(a0, b0, mt00);
         mt01 = fmadd_ps(a0, b1, mt01);
         mt02 = fmadd_ps(a0, b2, mt02);
@@ -160,7 +159,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     //     // mt05 = fmadd_ps(beta, _mm256_loadu_ps(ccol5), mt05);
     //     // mt06 = fmadd_ps(beta, _mm256_loadu_ps(ccol6), mt06);
     //     // mt07 = fmadd_ps(beta, _mm256_loadu_ps(ccol7), mt07);
-        
+
     //     mt10 = fmadd_ps(beta, _mm256_loadu_ps(ccol0.add(8)), mt10);
     //     mt11 = fmadd_ps(beta, _mm256_loadu_ps(ccol1.add(8)), mt11);
     //     mt12 = fmadd_ps(beta, _mm256_loadu_ps(ccol2.add(8)), mt12);
@@ -179,7 +178,7 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
     // _mm256_storeu_ps(ccol5, mt05);
     // _mm256_storeu_ps(ccol6, mt06);
     // _mm256_storeu_ps(ccol7, mt07);
-    
+
     _mm256_storeu_ps(ccol0.add(8), mt10);
     _mm256_storeu_ps(ccol1.add(8), mt11);
     _mm256_storeu_ps(ccol2.add(8), mt12);
@@ -192,10 +191,10 @@ pub(crate) unsafe fn sgemm_ukr_16x8<C: MatrixMut<f32>>(
 
 pub(crate) unsafe fn sgemm_sup_16x1<B: Matrix<f32>, C: MatrixMut<f32>>(
     k: usize,
-    alpha: f32,
+    _alpha: f32,
     pa: MutMatrix<f32>,
     b: B,
-    beta: f32,
+    _beta: f32,
     c: C,
 ) {
     let mut mt0 = _mm256_setzero_ps();

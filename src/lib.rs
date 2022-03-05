@@ -1,10 +1,10 @@
-pub mod matrix;
-pub mod gemm;
-mod sgemm;
 mod aligned_alloc;
-pub mod kernel;
 pub mod dim;
 pub mod executor;
+pub mod gemm;
+pub mod kernel;
+pub mod matrix;
+mod sgemm;
 
 #[cfg(test)]
 extern crate blas;
@@ -12,6 +12,5 @@ extern crate blas;
 extern crate openblas;
 #[cfg(test)]
 mod test;
-
 
 pub use crate::sgemm::sgemm;

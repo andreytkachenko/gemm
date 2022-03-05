@@ -1,17 +1,15 @@
-use rand::Rng;
-
 const M_LEN: usize = 17;
 const N_LEN: usize = 6;
 const K_LEN: usize = 4;
 
 fn make_matrices() -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
-    let mut rng = rand::thread_rng();
+    let _rng = rand::thread_rng();
 
     let (m, n, k) = (M_LEN, N_LEN, K_LEN);
 
     let mut a = vec![0.0; m * k];
     let mut a_t = vec![0.0; m * k];
-    
+
     let mut b = vec![0.0; n * k];
     let mut b_t = vec![0.0; n * k];
 
@@ -38,7 +36,6 @@ fn make_matrices() -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<f32>) {
     (a, a_t, b, b_t)
 }
 
-
 unsafe fn sgemm_ref(
     m: usize,
     n: usize,
@@ -55,9 +52,9 @@ unsafe fn sgemm_ref(
     for i_m in 0..m {
         for i_k in 0..k {
             let a_part = *a.add(i_m * lda + i_k);
-            
+
             for i_n in 0..n {
-                *c.add(i_m * ldc + i_n) += a_part *  *b.add(i_k * ldb + i_n);
+                *c.add(i_m * ldc + i_n) += a_part * *b.add(i_k * ldb + i_n);
             }
         }
     }
@@ -74,7 +71,6 @@ unsafe fn sgemm_ref(
     //     }
     // }
 }
-
 
 #[test]
 fn test_sgemm_nn() {
@@ -133,7 +129,6 @@ fn test_sgemm_nn() {
         );
     }
 
-
     for row in 0..N_LEN {
         for col in 0..M_LEN {
             let index = row * M_LEN + col;
@@ -160,16 +155,24 @@ fn test_sgemm_nn() {
 
             let (a, b) = (c[index], cref[index]);
 
-            assert!(feq(a, b), "a != b, a[{}, {}]={}, b[{}, {}]={}", row, col, a, row, col, b);
+            assert!(
+                feq(a, b),
+                "a != b, a[{}, {}]={}, b[{}, {}]={}",
+                row,
+                col,
+                a,
+                row,
+                col,
+                b
+            );
         }
     }
-    
 }
 
 #[test]
 fn test_sgemm_nt() {
     let (m, n, k) = (M_LEN, N_LEN, K_LEN);
-    let (a, _, b, b_t) = make_matrices();
+    let (a, _, _b, b_t) = make_matrices();
 
     let mut c = vec![0.0; m * n];
     let mut cref = vec![0.0; m * n];
@@ -216,16 +219,24 @@ fn test_sgemm_nt() {
         for col in 0..M_LEN {
             let index = row * M_LEN + col;
             let (a, b) = (c[index], cref[index]);
-            assert!(feq(a, b), "a != b, a[{}, {}]={}, b[{}, {}]={}", row, col, a, row, col, b);
+            assert!(
+                feq(a, b),
+                "a != b, a[{}, {}]={}, b[{}, {}]={}",
+                row,
+                col,
+                a,
+                row,
+                col,
+                b
+            );
         }
     }
 }
 
-
 #[test]
 fn test_sgemm_tn() {
     let (m, n, k) = (M_LEN, N_LEN, K_LEN);
-    let (a, a_t, b, _) = make_matrices();
+    let (_a, a_t, b, _) = make_matrices();
 
     let mut c = vec![0.0; m * n];
     let mut cref = vec![0.0; m * n];
@@ -272,16 +283,24 @@ fn test_sgemm_tn() {
         for col in 0..M_LEN {
             let index = row * M_LEN + col;
             let (a, b) = (c[index], cref[index]);
-            assert!(feq(a, b), "a != b, a[{}, {}]={}, b[{}, {}]={}", row, col, a, row, col, b);
+            assert!(
+                feq(a, b),
+                "a != b, a[{}, {}]={}, b[{}, {}]={}",
+                row,
+                col,
+                a,
+                row,
+                col,
+                b
+            );
         }
     }
 }
 
-
 #[test]
 fn test_sgemm_tt() {
     let (m, n, k) = (M_LEN, N_LEN, K_LEN);
-    let (a, a_t, b, b_t) = make_matrices();
+    let (_a, a_t, _b, b_t) = make_matrices();
 
     let mut c = vec![0.0; m * n];
     let mut cref = vec![0.0; m * n];
@@ -328,7 +347,16 @@ fn test_sgemm_tt() {
         for col in 0..M_LEN {
             let index = row * M_LEN + col;
             let (a, b) = (c[index], cref[index]);
-            assert!(feq(a, b), "a != b, a[{}, {}]={}, b[{}, {}]={}", row, col, a, row, col, b);
+            assert!(
+                feq(a, b),
+                "a != b, a[{}, {}]={}, b[{}, {}]={}",
+                row,
+                col,
+                a,
+                row,
+                col,
+                b
+            );
         }
     }
 }

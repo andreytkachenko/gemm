@@ -1,10 +1,12 @@
 use crate::aligned_alloc;
-use crate::matrix::{Number, Matrix, MatrixMut, MutMatrix, ConstMatrix, ConstTransposedMatrix, MutTransposedMatrix};
-use crate::kernel::params::single::{NC, MC, KC};
-use crate::kernel;
-use crate::kernel::GemmKernel;
 use crate::dim::Dim;
 use crate::executor::Executor;
+use crate::kernel;
+use crate::kernel::params::single::{KC, MC, NC};
+use crate::kernel::GemmKernel;
+use crate::matrix::{
+    ConstMatrix, ConstTransposedMatrix, Matrix, MatrixMut, MutMatrix, MutTransposedMatrix, Number,
+};
 
 pub unsafe fn gemm<E, F, K, MR, NR>(
     e: &E,
@@ -22,70 +24,109 @@ pub unsafe fn gemm<E, F, K, MR, NR>(
     beta: F,
     c: *mut F,
     ldc: usize,
-) 
-where E: Executor,
-      F: Number,
-      MR: Dim, NR: Dim,
-      K: GemmKernel<F, MR, NR>,
+) where
+    E: Executor,
+    F: Number,
+    MR: Dim,
+    NR: Dim,
+    K: GemmKernel<F, MR, NR>,
 {
     match (transa, transb, transc) {
         (false, false, false) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstMatrix::new(a, lda),
             ConstMatrix::new(b, ldb),
             beta,
-            MutMatrix::new(c, ldc)), 
+            MutMatrix::new(c, ldc),
+        ),
 
         (false, false, true) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstMatrix::new(a, lda),
             ConstMatrix::new(b, ldb),
             beta,
-            MutTransposedMatrix::new(c, ldc)), 
-        
+            MutTransposedMatrix::new(c, ldc),
+        ),
+
         (false, true, false) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstMatrix::new(a, lda),
             ConstTransposedMatrix::new(b, ldb),
             beta,
-            MutMatrix::new(c, ldc)), 
+            MutMatrix::new(c, ldc),
+        ),
 
         (false, true, true) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstMatrix::new(a, lda),
             ConstTransposedMatrix::new(b, ldb),
             beta,
-            MutTransposedMatrix::new(c, ldc)), 
+            MutTransposedMatrix::new(c, ldc),
+        ),
 
         (true, false, false) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstTransposedMatrix::new(a, lda),
             ConstMatrix::new(b, ldb),
             beta,
-            MutMatrix::new(c, ldc)), 
-        
+            MutMatrix::new(c, ldc),
+        ),
+
         (true, false, true) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstTransposedMatrix::new(a, lda),
             ConstMatrix::new(b, ldb),
             beta,
-            MutTransposedMatrix::new(c, ldc)), 
+            MutTransposedMatrix::new(c, ldc),
+        ),
 
-                    
         (true, true, false) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstTransposedMatrix::new(a, lda),
             ConstTransposedMatrix::new(b, ldb),
             beta,
-            MutMatrix::new(c, ldc)), 
+            MutMatrix::new(c, ldc),
+        ),
 
-                    
         (true, true, true) => gemm_template::<E, F, K, MR, NR, _, _, _>(
-            e, m, n, k, alpha, 
+            e,
+            m,
+            n,
+            k,
+            alpha,
             ConstTransposedMatrix::new(a, lda),
             ConstTransposedMatrix::new(b, ldb),
             beta,
-            MutTransposedMatrix::new(c, ldc)), 
+            MutTransposedMatrix::new(c, ldc),
+        ),
     }
 }
 
@@ -98,15 +139,16 @@ unsafe fn gemm_template<E, F, K, MR, NR, A, B, C>(
     a: A,
     b: B,
     beta: F,
-    c: C
-) 
-where E: Executor,
-      F: Number,
-      MR: Dim, NR: Dim,
-      K: GemmKernel<F, MR, NR>,
-      A: Matrix<F>,
-      B: Matrix<F>,
-      C: MatrixMut<F>,
+    c: C,
+) where
+    E: Executor,
+    F: Number,
+    MR: Dim,
+    NR: Dim,
+    K: GemmKernel<F, MR, NR>,
+    A: Matrix<F>,
+    B: Matrix<F>,
+    C: MatrixMut<F>,
 {
     let packed_a = aligned_alloc::Alloc::new(MC * KC * std::mem::size_of::<F>());
     let packed_b = aligned_alloc::Alloc::new(KC * NC * std::mem::size_of::<F>());
@@ -122,7 +164,7 @@ where E: Executor,
                 let pb = MutMatrix::new(packed_b.ptr::<F>(), p_b);
 
                 inner_kernel::<E, F, K, MR, NR, _, _, _>(
-                    e, 
+                    e,
                     i_b,
                     j_b,
                     p_b,
@@ -133,7 +175,7 @@ where E: Executor,
                     c.sub(j, i),
                     pa,
                     pb,
-                    i == 0
+                    i == 0,
                 );
             }
         }
@@ -141,7 +183,7 @@ where E: Executor,
 }
 
 //
-//                |       MR     |   
+//                |       MR     |
 // +-----------------------------+----+
 // |              :              |    |
 // |  TL          :              | TR |
@@ -172,16 +214,15 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
     pa: MutMatrix<F>,
     pb: MutMatrix<F>,
     first_time: bool,
-)
-    where E: Executor,
-          F: Number,
-          MR: Dim, 
-          NR: Dim,
-          K: kernel::GemmKernel<F, MR, NR>,
-          A: Matrix<F>,
-          B: Matrix<F>,
-          C: MatrixMut<F>,
-
+) where
+    E: Executor,
+    F: Number,
+    MR: Dim,
+    NR: Dim,
+    K: kernel::GemmKernel<F, MR, NR>,
+    A: Matrix<F>,
+    B: Matrix<F>,
+    C: MatrixMut<F>,
 {
     let n_left = n % NR::DIM;
     let n_main = n - n_left;
@@ -190,33 +231,24 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
     let m_main = m - m_left;
 
     if first_time {
-        e.execute(0, n_main, NR::DIM, move |j| 
-            K::pack_row_b(b, pb));
+        e.execute(0, n_main, NR::DIM, move |_j| K::pack_row_b(b, pb));
     }
 
-    e.execute(0, m_main, MR::DIM, move |i| 
-        K::pack_row_a(a.sub_col(i), pa.sub_row(i)));
+    e.execute(0, m_main, MR::DIM, move |i| {
+        K::pack_row_a(a.sub_col(i), pa.sub_row(i))
+    });
 
     e.synchronize();
-    
+
     e.execute(0, n_main, NR::DIM, move |j| {
         // Section TL
         for i in (0..m_main).step_by(MR::DIM) {
-            K::main_tl(alpha,
-                pa.sub_row(i),
-                pb.sub_row(j),
-                beta,
-                c.sub(j, i));
+            K::main_tl(alpha, pa.sub_row(i), pb.sub_row(j), beta, c.sub(j, i));
         }
 
         // Section TR
         for i in m_main..m {
-            K::sup_tr(
-                alpha,
-                a.sub_col(i),
-                pb.sub_row(j),
-                beta,
-                c.sub(j, i));
+            K::sup_tr(alpha, a.sub_col(i), pb.sub_row(j), beta, c.sub(j, i));
         }
     });
 
@@ -225,27 +257,15 @@ unsafe fn inner_kernel<E, F, K, MR, NR, A, B, C>(
         let i = ji % m_main;
 
         // Section BL
-        K::sup_bl(
-            alpha,
-            pa.sub_row(i),
-            b.sub_row(j),
-            beta,
-            c.sub(j, i)
-        );
+        K::sup_bl(alpha, pa.sub_row(i), b.sub_row(j), beta, c.sub(j, i));
     });
 
     // Section BR
     for j in n_main..n {
         for i in m_main..m {
-            K::sup_br(
-                k,
-                alpha,
-                a.sub_col(i),
-                b.sub_row(j),
-                beta,
-                c.sub(j, i))
+            K::sup_br(k, alpha, a.sub_col(i), b.sub_row(j), beta, c.sub(j, i))
         }
-    };
+    }
 
     e.synchronize();
 }
