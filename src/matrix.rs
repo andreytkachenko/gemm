@@ -1,5 +1,4 @@
-
-pub trait Number: core::fmt::Display + Copy + Send + Sync + 'static  {}
+pub trait Number: core::fmt::Display + Copy + Send + Sync + 'static {}
 
 impl Number for f32 {}
 impl Number for f64 {}
@@ -32,7 +31,7 @@ pub trait MatrixMut<F: Number>: Matrix<F> {
 #[derive(Copy, Clone)]
 pub struct ConstMatrix<F: Number> {
     pub stride: usize,
-    pub ptr: *const F
+    pub ptr: *const F,
 }
 
 unsafe impl<F: Number> Send for ConstMatrix<F> {}
@@ -47,31 +46,31 @@ impl<F: Number> ConstMatrix<F> {
 impl<F: Number> Matrix<F> for ConstMatrix<F> {
     #[inline]
     unsafe fn sub(&self, row: usize, col: usize) -> Self {
-        Self { 
-            ptr: self.index(row, col), 
-            stride: self.stride 
+        Self {
+            ptr: self.index(row, col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_col(&self, col: usize) -> Self {
-        Self { 
-            ptr: self.col(col), 
-            stride: self.stride 
+        Self {
+            ptr: self.col(col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_row(&self, row: usize) -> Self {
-        Self { 
-            ptr: self.row(row), 
-            stride: self.stride 
+        Self {
+            ptr: self.row(row),
+            stride: self.stride,
         }
     }
 
     #[inline]
-    unsafe fn is_transposed(&self) -> bool { 
-        false 
+    unsafe fn is_transposed(&self) -> bool {
+        false
     }
 
     #[inline]
@@ -128,7 +127,7 @@ impl<F: Number> Matrix<F> for ConstMatrix<F> {
 #[derive(Copy, Clone)]
 pub struct ConstTransposedMatrix<F: Number> {
     pub stride: usize,
-    pub ptr: *const F
+    pub ptr: *const F,
 }
 
 unsafe impl<F: Number> Send for ConstTransposedMatrix<F> {}
@@ -143,25 +142,25 @@ impl<F: Number> ConstTransposedMatrix<F> {
 impl<F: Number> Matrix<F> for ConstTransposedMatrix<F> {
     #[inline]
     unsafe fn sub(&self, row: usize, col: usize) -> Self {
-        Self { 
-            ptr: self.index(row, col), 
-            stride: self.stride 
+        Self {
+            ptr: self.index(row, col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_col(&self, col: usize) -> Self {
-        Self { 
-            ptr: self.col(col), 
-            stride: self.stride 
+        Self {
+            ptr: self.col(col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_row(&self, row: usize) -> Self {
-        Self { 
-            ptr: self.row(row), 
-            stride: self.stride 
+        Self {
+            ptr: self.row(row),
+            stride: self.stride,
         }
     }
 
@@ -224,7 +223,7 @@ impl<F: Number> Matrix<F> for ConstTransposedMatrix<F> {
 #[derive(Copy, Clone)]
 pub struct MutMatrix<F: Number> {
     pub stride: usize,
-    pub ptr: *mut F
+    pub ptr: *mut F,
 }
 
 unsafe impl<F: Number> Send for MutMatrix<F> {}
@@ -239,38 +238,38 @@ impl<F: Number> MutMatrix<F> {
 impl<F: Number> Matrix<F> for MutMatrix<F> {
     #[inline]
     unsafe fn sub(&self, row: usize, col: usize) -> Self {
-        Self { 
-            ptr: self.index_mut(row, col), 
-            stride: self.stride 
+        Self {
+            ptr: self.index_mut(row, col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_col(&self, col: usize) -> Self {
-        Self { 
-            ptr: self.col_mut(col), 
-            stride: self.stride 
+        Self {
+            ptr: self.col_mut(col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_row(&self, row: usize) -> Self {
-        Self { 
-            ptr: self.row_mut(row), 
-            stride: self.stride 
+        Self {
+            ptr: self.row_mut(row),
+            stride: self.stride,
         }
     }
 
     #[inline]
-    unsafe fn is_transposed(&self) -> bool { 
-        false 
+    unsafe fn is_transposed(&self) -> bool {
+        false
     }
 
     #[inline]
     unsafe fn stride(&self) -> usize {
         self.stride
     }
-    
+
     #[inline]
     unsafe fn get(&self, row: usize, col: usize) -> F {
         *self.ptr.add(row * self.stride + col)
@@ -347,7 +346,7 @@ impl<F: Number> MatrixMut<F> for MutMatrix<F> {
 #[derive(Copy, Clone)]
 pub struct MutTransposedMatrix<F: Number> {
     pub stride: usize,
-    pub ptr: *mut F
+    pub ptr: *mut F,
 }
 
 unsafe impl<F: Number> Send for MutTransposedMatrix<F> {}
@@ -362,25 +361,25 @@ impl<F: Number> MutTransposedMatrix<F> {
 impl<F: Number> Matrix<F> for MutTransposedMatrix<F> {
     #[inline]
     unsafe fn sub(&self, row: usize, col: usize) -> Self {
-        Self { 
-            ptr: self.index_mut(row, col), 
-            stride: self.stride 
+        Self {
+            ptr: self.index_mut(row, col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_col(&self, col: usize) -> Self {
-        Self { 
-            ptr: self.col_mut(col), 
-            stride: self.stride 
+        Self {
+            ptr: self.col_mut(col),
+            stride: self.stride,
         }
     }
 
     #[inline]
     unsafe fn sub_row(&self, row: usize) -> Self {
-        Self { 
-            ptr: self.row_mut(row), 
-            stride: self.stride 
+        Self {
+            ptr: self.row_mut(row),
+            stride: self.stride,
         }
     }
 
@@ -440,7 +439,6 @@ impl<F: Number> Matrix<F> for MutTransposedMatrix<F> {
     }
 }
 
-
 impl<F: Number> MatrixMut<F> for MutTransposedMatrix<F> {
     #[inline]
     unsafe fn set(&self, row: usize, col: usize, value: F) {
@@ -467,5 +465,3 @@ impl<F: Number> MatrixMut<F> for MutTransposedMatrix<F> {
         self.ptr
     }
 }
-
-

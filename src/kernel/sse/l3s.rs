@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::fma::fmadd_ps;
 use super::intrinsics::*;
 use crate::kernel::params::single::NR;
@@ -5,10 +7,10 @@ use crate::matrix::{Matrix, MatrixMut, MutMatrix};
 
 pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     k: usize,
-    alpha: f32,
+    _alpha: f32,
     a: A,
     pb: MutMatrix<f32>,
-    beta: f32,
+    _beta: f32,
     c: C,
 ) {
     let mut c0_3 = _mm_setzero_ps();
@@ -23,7 +25,7 @@ pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     for _ in 0..k {
         let a0 = *a.ptr();
         let a0_simd = _mm_broadcast_ss(&*a.ptr());
-        
+
         c0_3 = fmadd_ps(_mm_loadu_ps(pb.ptr()), a0_simd, c0_3);
         c4 += *pb.col(4) * a0;
         // c5 += *pb.add(5) * a0;
@@ -42,7 +44,7 @@ pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     // c5 *= alpha;
     // c6 *= alpha;
     // c7 *= alpha;
-    
+
     let ccol0_3 = c.ptr_mut();
     let ccol4 = c.row_mut(4);
     // let ccol5 = c.add(ldc * 5);
@@ -69,11 +71,11 @@ pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
 
 pub(crate) unsafe fn sgemm_sup_1x8_t(
     k: usize,
-    alpha: f32,
+    _alpha: f32,
     a: *const f32,
-    lda: usize,
+    _lda: usize,
     pb: *const f32,
-    beta: f32,
+    _beta: f32,
     c: *mut f32,
     ldc: usize,
 ) {
@@ -88,8 +90,8 @@ pub(crate) unsafe fn sgemm_sup_1x8_t(
 
     for _ in 0..k {
         let a0 = *a;
-        let a0_simd = _mm_set_ps1(a0); 
-        
+        let a0_simd = _mm_set_ps1(a0);
+
         c03 = fmadd_ps(_mm_loadu_ps(pb), a0_simd, c03);
         c4 += *pb.add(4) * a0;
         // c5 += *pb.add(5) * a0;
@@ -108,7 +110,7 @@ pub(crate) unsafe fn sgemm_sup_1x8_t(
     // c5 *= alpha;
     // c6 *= alpha;
     // c7 *= alpha;
-    
+
     // let ccol0 = c;
     // let ccol1 = c.add(ldc);
     // let ccol2 = c.add(ldc * 2);

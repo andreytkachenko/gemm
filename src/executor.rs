@@ -42,19 +42,18 @@ impl Executor for RayonExecutor {
         (start..end)
             .into_par_iter()
             .map(|x| x * step)
-            .for_each(|x|f(x));
+            .for_each(|x| f(x));
     }
 }
 
-
 pub struct ThreadPoolExecutor {
-    thread_pool: threadpool::ThreadPool
+    thread_pool: threadpool::ThreadPool,
 }
 
 impl ThreadPoolExecutor {
     pub fn new() -> ThreadPoolExecutor {
         ThreadPoolExecutor {
-            thread_pool: threadpool::Builder::new().build()
+            thread_pool: threadpool::Builder::new().build(),
         }
     }
 }

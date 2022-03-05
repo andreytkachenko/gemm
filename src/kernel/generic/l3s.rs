@@ -1,13 +1,12 @@
 use crate::kernel::params::single::NR;
-use crate::matrix::{MutMatrix, Matrix, MatrixMut};
-
+use crate::matrix::{Matrix, MatrixMut, MutMatrix};
 
 pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     k: usize,
-    alpha: f32,
+    _alpha: f32,
     a: A,
     pb: MutMatrix<f32>,
-    beta: f32,
+    _beta: f32,
     c: C,
 ) {
     let mut c0 = 0.0f32;
@@ -46,7 +45,7 @@ pub(crate) unsafe fn sgemm_sup_1x8<A: Matrix<f32>, C: MatrixMut<f32>>(
     // // c5 *= alpha;
     // // c6 *= alpha;
     // // c7 *= alpha;
-    
+
     let ccol0 = c.ptr_mut();
     let ccol1 = c.row_mut(1);
     let ccol2 = c.row_mut(2);
